@@ -1,0 +1,381 @@
+When you create an user defined exception,
+	i) extends Exception (for checked exception)
+	ii) extends any class that is derived from Exception (checked exception)
+	iii) extends RuntimeException (for unchecked exception)
+	iv) extends any class that is derived from RuntimeException (unchecked exception)
+
+	v) the constructor may supply a String argument as message to the super class
+
+
+class MyException extends Exception
+{
+	public MyException(){}
+
+	public 
+}
+
+
+When is the code challenge for Java?
+----------------
+3-feb-22
+
+pending?	
+	JDBC
+
+Java DataBase Connectivity
+	is an API that stands as a layer between java programs and RDBMS (or any database)
+
+	We can use the SQL statements (that you have learned) in java programs
+
+There are some challenges for java programs to connect with database.
+	i) There are many RDBMS in the market
+	ii) these db products are provided by DB vendors	(ex:	Oracle, Microsoft, IBM)
+	
+There are differences in the products.
+How these differences are handled by JDBC?
+
+Does Java support any DB product in the world?
+	NO. Only db products that have released the driver (java) code, they are accessible from java program.
+
+Orace, SQL Server, MySQL
+	whatever above db you use, they have written some java code to provide access to their product
+	Those java codes are called as driver.
+
+These drivers (all these drivers) are java implementation for the interfaces defined in JDBC
+
+interfaces like:
+	Connection
+	Statement
+	PreparedStatement
+	CallableStatement
+	ResultSet
+	
+
+These interfaces are in JDBC
+	the implementations are provided by the db vendors in the form of "Driver" code
+
+we need to download those drivers as "jar" files
+	JAVA ARCHIVE		(jar)
+
+	jar is similar to .rar	or 	even 	.zip
+
+
+
+
+if we use "maven", then we can use "dependencies" that represent the jar
+
+all the java code is same (be the backend is mysql/ oracle)
+
+1) Load a driver 		(by creating an object of driver class)
+2) Establish the connection	(url, username, password)
+		we are logging into the database
+3) represent the sql query as a Statement
+4) execute the statement
+5) close the connection
+
+
+
+
+Steps to add a jar file to a "java project"
+	right click the project in eclipse
+		properties
+			"Build Path"
+				libraries tab
+					add external jar
+						(location of jar should be inside your project folder. Otherwise, when i upload or move to another computer, then the location becomes invalid)
+
+
+con.executeQuery();			//SELECT			returns a result set	(collection of rows)
+con.executeUpdate();			//DML			returns an int	(how many rows affected)
+con.execute();			//EVERYTHING. but you will not get result
+
+
+
+Demo1:
+=------
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import com.mysql.jdbc.Driver;
+
+public class Main {
+
+	public static void main(String[] args) throws SQLException {
+		//loading a driver
+		Driver driver = new com.mysql.jdbc.Driver();
+//		DriverManager.registerDriver(driver);
+		String url="jdbc:mysql://localhost:3306/bank";
+		String username="root";
+		String password="";
+		//establish a connection
+		Connection con = DriverManager.getConnection(url, username, password);
+		Statement st = con.createStatement();
+		ResultSet rs = st.executeQuery("SELECT * FROM customer");
+		while(rs.next())
+		{
+			System.out.println(rs.getString(1)+"\t"+rs.getString(2));
+		}
+		con.close();
+//		DriverManager.deregisterDriver(driver);
+	}
+
+}
+
+
+
+------------------------
+Statement
+PreparedStatement
+CallableStatement
+
+Statement
+	for simple queries where input is not required to fullfill
+
+		SELECT * FROM CUSTOMER WHERE city='Chennai';		//here nothing is inputed during runtime
+
+	but
+		SELECT * FROM CUSTOMER WHERE city=?			//the city is input at runtime only
+
+		in such cases, we use PreparedStatement
+	
+PreparedStatement
+	is used for parameterized queries
+
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+public class Main2 {
+
+	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+		//sometimes, you cannot create object of driver here like we did earlier. Because, which driver? that itself is decided based on input/ or at runtime
+		//we need to create an object of driver based on a string
+		Class.forName("com.mysql.jdbc.Driver");
+		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bank","root","");
+//		PreparedStatement st = con.prepareStatement("INSERT INTO CUSTOMER VALUES ('C00011','Abcd','Efgh','Ijkl','Delhi','9898989','Service','1981-09-26')");
+		PreparedStatement st=con.prepareStatement("INSERT INTO CUSTOMER VALUES (?,?,?,?,?,?,?,?)");
+		st.setString(1, "C00011");
+		st.setString(2, "Abcd");
+		st.setString(3, "Efgh");
+		st.setString(4, "Ijkl");
+		st.setString(5, "Delhi");
+		st.setString(6, "98989898");
+		st.setString(7, "Service");
+		st.setString(8, "1981-09-26");
+		
+		int no = st.executeUpdate();
+		System.out.println(no+" row(s) affected");
+		con.close();
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+public class Main2 {
+
+	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+		//sometimes, you cannot create object of driver here like we did earlier. Because, which driver? that itself is decided based on input/ or at runtime
+		//we need to create an object of driver based on a string
+		Class.forName("com.mysql.jdbc.Driver");
+		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bank","root","");
+//		PreparedStatement st = con.prepareStatement("INSERT INTO CUSTOMER VALUES ('C00011','Abcd','Efgh','Ijkl','Delhi','9898989','Service','1981-09-26')");
+		PreparedStatement st=con.prepareStatement("UPDATE CUSTOMER SET ltname=? WHERE custid=?");
+		st.setString(1, "Kumar");
+		st.setString(2, "C00011");
+		
+		int no = st.executeUpdate();
+		System.out.println(no+" row(s) affected");
+		con.close();
+	}
+
+}
+
+
+
+
+
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+public class Main2 {
+
+	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+		//sometimes, you cannot create object of driver here like we did earlier. Because, which driver? that itself is decided based on input/ or at runtime
+		//we need to create an object of driver based on a string
+		Class.forName("com.mysql.jdbc.Driver");
+		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bank","root","");
+//		PreparedStatement st = con.prepareStatement("INSERT INTO CUSTOMER VALUES ('C00011','Abcd','Efgh','Ijkl','Delhi','9898989','Service','1981-09-26')");
+		PreparedStatement st=con.prepareStatement("delete from customer WHERE custid=?");
+		
+		st.setString(1, "C00011");
+		
+		int no = st.executeUpdate();
+		System.out.println(no+" row(s) affected");
+		con.close();
+	}
+
+}
+
+
+
+
+
+
+
+
+
+CallableStatement
+	for executing stored procedures
+
+
+
+
+DECLARE
+ SAL INT;
+BEGIN
+ PRC1(100,SAL);
+ DBMS_OUTPUT.PUT_LINE(SAL);
+END;
+
+
+There is a procedure called PRC1
+	input parameter	EID
+	output parameter 	SAL
+
+How to call this procedure from jdbc?
+	
+
+
+
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.SQLType;
+import java.sql.Types;
+
+public class Main3 {
+
+	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+//		Class.forName("com.mysql.jdbc.Driver");  		//this is mysql
+		new oracle.jdbc.driver.OracleDriver();
+		
+		
+//		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bank","root","");
+		Connection con = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe","hr","hr");
+		CallableStatement st = con.prepareCall("{ call prc1(?,?)}");
+		st.setInt(1, 100);
+		st.registerOutParameter(2, Types.INTEGER);
+		st.execute();
+		System.out.println("The salary of employee 100 is "+st.getInt(2));
+		con.close();
+	}
+
+}
+
+
+
+
+
+
+
+
+We have done all the code in main method to just test
+but it is good idea to create a separate class with methods to 	
+	get connection
+	add
+	update
+	delete
+	select all
+	select based in primary key
+
+CRUD
+
+
+
+CUSTOMER is a table
+Customer is a java class
+
+map the class to table
+map the properties of class to columns of table
+
+WHY?
+	only then, we can represent a row as an object
+	rows as an array list of object
+
+we get results when we run queries, how to store them in java?
+
+ORM
+	Object Relational Mapping
+
+
+
+
+Regular expression
+	i) check if the input string matches with the pattern given		true/false
+	ii) extract the portions of a string wherever a pattern matches
+
+i) ex:
+	id should start with PLATINUM followed by 3 digits
+
+		reg ex:	
+			PLATINUM\\d{3}
+			PLATINUM[0-9]{3}
+
+PATTERN has 
+	symbol
+	multiplicity
+
+ex:
+	\d{3}			3 digits
+	\d{1,3}			min 1 digit and max 3 digits
+	\d{1,}			min 1 digit and max unbounded
+
+PLATINUM
+	this is not a symbol so exactly the word  PLATINUM must be present
+
+
+	[A-Z]
+	[a-z]
+	[A-Za-z]
+	[A-Za-z0-9]
+
+[aeiou]
+	any one of the given list of character
+
+
+multiplicity
+	*		0 or more
+	+		1 or more
+	?		optional		(check)
+
+\w
+\d
+\D
+
+
